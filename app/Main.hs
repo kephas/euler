@@ -8,7 +8,7 @@ import           System.Environment             ( getArgs )
 import           Text.Read                      ( readMaybe )
 
 
-lookupProblem args = fromMaybe "" $ do
+lookupProblem args = fromMaybe (snd $ last problems) $ do
   arg1 <- listToMaybe args
   num  <- readMaybe arg1
   lookup num problems
