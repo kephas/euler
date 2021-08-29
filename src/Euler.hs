@@ -58,6 +58,9 @@ problem4 = head $ reverse $ sort $ do
 problem5 = foldl1 lcm [1 .. 20]
 
 
+problem7 = primes !! 10000
+
+
 pandigital digits = sort digits == "123456789"
 
 pandigitalBothEnds digits =
@@ -109,5 +112,6 @@ problems =
   , makeSolved 3   6857      problem3
   , makeSolved 4   906609    problem4
   , makeSolved 5   232792560 problem5
+  , makeSolved 7   104743    problem7
   , makeSolved 104 329468    problem104
   ]
