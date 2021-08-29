@@ -1,3 +1,5 @@
+{-# LANGUAGE QuasiQuotes #-}
+
 module Euler where
 
 import           Control.Monad                  ( guard )
@@ -5,6 +7,7 @@ import           Data.Function                  ( (&) )
 import           Data.List                      ( find
                                                 , sort
                                                 )
+import           Data.String.Interpolate
 
 orF f g x = f x || g x
 
@@ -65,32 +68,31 @@ problem104 =
 
 
 
-data Problem = Solved Int String String | Unsolved Int String
+data Problem = Problem
+  { _number    :: Int
+  , _reference :: Maybe String
+  , _solution  :: String
+  }
 
 makeSolved :: (Show a) => Int -> a -> a -> Problem
-makeSolved num reference solution = Solved num (show reference) (show solution)
+makeSolved num reference solution =
+  Problem num (Just $ show reference) (show solution)
 
 makeUnsolved :: (Show a) => Int -> a -> Problem
-makeUnsolved num solution = Unsolved num (show solution)
-
-getNum problem = case problem of
-  Solved n _ _ -> n
-  Unsolved n _ -> n
+makeUnsolved num solution = Problem num Nothing (show solution)
 
 
 lookup :: Int -> [Problem] -> Maybe Problem
-lookup num problems = find ((==) num . getNum) problems
+lookup num problems = find ((==) num . _number) problems
 
-showProblem problem = do
-  case problem of
-    Solved num reference solution -> do
-      putStrLn $ "#" ++ show num
-      putStrLn $ "reference : " ++ reference
-      putStrLn $ "solution  : " ++ solution
+showProblem (Problem num mref solution) = do
+  case mref of
+    Just reference -> putStrLn $ [i|##{num}
+reference : #{reference}
+solution  : #{solution}|]
 
-    Unsolved num solution -> do
-      putStrLn $ "#" ++ show num
-      putStrLn $ "solution  : " ++ solution
+    Nothing -> putStrLn $ [i|##{num}
+solution  : #{solution}|]
 
 
 problems :: [Problem]
