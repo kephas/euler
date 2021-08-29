@@ -1,8 +1,10 @@
-module Euler
-  ( problems
-  ) where
+module Euler where
 
+import           Control.Monad                  ( guard )
 import           Data.Function                  ( (&) )
+import           Data.List                      ( find
+                                                , sort
+                                                )
 
 orF f g x = f x || g x
 
@@ -12,11 +14,9 @@ problem1 :: Int
 problem1 = [1 .. 999] & filter (orF (divisibleBy 3) (divisibleBy 5)) & sum
 
 
-getFibonacci n1 n2 = n1 : (getFibonacci n2 $ n1 + n2)
+fibonacci n1 n2 = n1 : (fibonacci n2 $ n1 + n2)
 
-fibonacci = getFibonacci 1 2
-
-problem2 = fibonacci & filter even & takeWhile (<= 4000000) & sum
+problem2 = fibonacci 1 2 & tail & filter even & takeWhile (<= 4000000) & sum
 
 
 divides = flip divisibleBy
@@ -39,5 +39,65 @@ factors num = loop num [] primes
 problem3 = head $ factors 600851475143
 
 
-problems :: [(Int, String)]
-problems = [(1, show $ problem1), (2, show $ problem2), (3, show $ problem3)]
+palindrome list = list == reverse list
+
+problem4 = head $ reverse $ sort $ do
+  let nums = [999, 998 .. 100]
+  num1 <- nums
+  num2 <- nums
+  let product = num1 * num2
+  guard $ palindrome $ show product
+  return product
+
+
+pandigital digits = sort digits == "123456789"
+
+pandigitalBothEnds digits =
+  (pandigital $ take 9 $ digits) && (pandigital $ take 9 $ reverse digits)
+
+problem104 =
+  fst
+    $ head
+    $ filter (pandigitalBothEnds . snd)
+    $ zip [1 ..]
+    $ map show
+    $ fibonacci 1 1
+
+
+
+data Problem = Solved Int String String | Unsolved Int String
+
+makeSolved :: (Show a) => Int -> a -> a -> Problem
+makeSolved num reference solution = Solved num (show reference) (show solution)
+
+makeUnsolved :: (Show a) => Int -> a -> Problem
+makeUnsolved num solution = Unsolved num (show solution)
+
+getNum problem = case problem of
+  Solved n _ _ -> n
+  Unsolved n _ -> n
+
+
+lookup :: Int -> [Problem] -> Maybe Problem
+lookup num problems = find ((==) num . getNum) problems
+
+showProblem problem = do
+  case problem of
+    Solved num reference solution -> do
+      putStrLn $ "#" ++ show num
+      putStrLn $ "reference : " ++ reference
+      putStrLn $ "solution  : " ++ solution
+
+    Unsolved num solution -> do
+      putStrLn $ "#" ++ show num
+      putStrLn $ "solution  : " ++ solution
+
+
+problems :: [Problem]
+problems =
+  [ makeSolved 1   233168  problem1
+  , makeSolved 2   4613732 problem2
+  , makeSolved 3   6857    problem3
+  , makeSolved 4   906609  problem4
+  , makeSolved 104 329468  problem104
+  ]
