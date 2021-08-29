@@ -1,7 +1,9 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Euler where
 
+import           Control.Lens
 import           Control.Monad                  ( guard )
 import           Data.Function                  ( (&) )
 import           Data.List                      ( find
@@ -53,6 +55,9 @@ problem4 = head $ reverse $ sort $ do
   return product
 
 
+problem5 = foldl1 lcm [1 .. 20]
+
+
 pandigital digits = sort digits == "123456789"
 
 pandigitalBothEnds digits =
@@ -73,6 +78,8 @@ data Problem = Problem
   , _reference :: Maybe String
   , _solution  :: String
   }
+
+$(makeLenses ''Problem)
 
 makeSolved :: (Show a) => Int -> a -> a -> Problem
 makeSolved num reference solution =
@@ -97,9 +104,10 @@ solution  : #{solution}|]
 
 problems :: [Problem]
 problems =
-  [ makeSolved 1   233168  problem1
-  , makeSolved 2   4613732 problem2
-  , makeSolved 3   6857    problem3
-  , makeSolved 4   906609  problem4
-  , makeSolved 104 329468  problem104
+  [ makeSolved 1   233168    problem1
+  , makeSolved 2   4613732   problem2
+  , makeSolved 3   6857      problem3
+  , makeSolved 4   906609    problem4
+  , makeSolved 5   232792560 problem5
+  , makeSolved 104 329468    problem104
   ]
