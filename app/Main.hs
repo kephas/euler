@@ -3,6 +3,7 @@
 
 module Main where
 
+import           Brick                          ( (<+>) )
 import qualified Brick                         as B
 import qualified Brick.Widgets.Border          as BB
 import qualified Brick.Widgets.Border.Style    as BB
@@ -30,14 +31,58 @@ doCommandLine = lookupProblem <$> getArgs >>= E.showProblem
 
 {-- TUI --}
 
+data RenderedProblem
+  = UnevaluatedWithReference { num :: Int, ref :: String, solution :: String }
+  | GoodSolution { num :: Int, solution :: String }
+  | BadSolution { num :: Int, ref :: String, solution :: String }
+  | UnevaluatedWithoutReference { num :: Int, solution :: String }
+  | EvaluatedWithoutReference { num :: Int, solution :: String }
+
 data State = State
-  { _problems :: BL.GenericList () Vec.Vector E.Problem
+  { _problems :: BL.GenericList () Vec.Vector RenderedProblem
   }
 
 $(makeLenses ''State)
 
-drawProblem selected (E.Problem num mref _) =
-  B.str [i| ##{num} #{fromMaybe "?" mref}|]
+
+renderProblem (E.Problem num mref solution) = case mref of
+  Just reference -> UnevaluatedWithReference num reference solution
+  Nothing        -> UnevaluatedWithoutReference num solution
+
+evaluateProblem problem = case problem of
+  UnevaluatedWithReference num ref solution -> if ref == solution
+    then GoodSolution num solution
+    else BadSolution num ref solution
+
+  UnevaluatedWithoutReference num solution ->
+    EvaluatedWithoutReference num solution
+
+  _ -> problem
+
+isUnevaluatedWithoutReference p = case p of
+  UnevaluatedWithoutReference _ _ -> True
+  _                               -> False
+
+
+orange = V.Color240 192
+
+withTextColor color = B.modifyDefAttr (flip V.withForeColor color)
+
+drawProblem _ problem = case problem of
+  UnevaluatedWithReference num ref _ ->
+    B.modifyDefAttr (flip V.withForeColor orange) $ B.str [i|##{num} #{ref}|]
+
+  GoodSolution num solution ->
+    withTextColor V.green $ B.str [i|##{num} #{solution}|]
+
+  BadSolution num ref solution ->
+    withTextColor V.red
+      $   B.str [i|##{num} |]
+      <+> (withTextColor V.green $ B.str ref)
+      <+> B.str [i| != #{solution}|]
+
+  UnevaluatedWithoutReference num _        -> B.str [i|##{num} ?|]
+  EvaluatedWithoutReference   num solution -> B.str [i|##{num} #{solution}|]
 
 draw :: State -> [B.Widget ()]
 draw state =
@@ -52,6 +97,8 @@ draw state =
 
 update :: State -> B.BrickEvent () e -> B.EventM () (B.Next State)
 update state (B.VtyEvent (V.EvKey (V.KChar 'q') [])) = B.halt state
+update state (B.VtyEvent (V.EvKey V.KEnter [])) =
+  B.continue (state & problems %~ BL.listModify evaluateProblem)
 update state (B.VtyEvent event) =
   B.handleEventLensed state problems BL.handleListEvent event >>= B.continue
 
@@ -68,9 +115,9 @@ eulerApp = B.App { B.appDraw         = draw
                  }
 
 
-state0 = State $ BL.listFindBy (isNothing . view E.reference) $ BL.list
+state0 = State $ BL.listFindBy isUnevaluatedWithoutReference $ BL.list
   ()
-  (Vec.fromList E.problems)
+  (Vec.fromList $ map renderProblem E.problems)
   1
 
 main :: IO ()
