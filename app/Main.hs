@@ -97,8 +97,8 @@ draw state =
 
 update :: State -> B.BrickEvent () e -> B.EventM () (B.Next State)
 update state (B.VtyEvent (V.EvKey (V.KChar 'q') [])) = B.halt state
-update state (B.VtyEvent (V.EvKey V.KEnter [])) =
-  B.continue (state & problems %~ BL.listModify evaluateProblem)
+update state (B.VtyEvent (V.EvKey V.KEnter      [])) = B.continue
+  (state & problems %~ BL.listMoveDown . BL.listModify evaluateProblem)
 update state (B.VtyEvent event) =
   B.handleEventLensed state problems BL.handleListEvent event >>= B.continue
 
