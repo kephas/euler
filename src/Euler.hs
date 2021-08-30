@@ -58,6 +58,9 @@ problem4 = head $ reverse $ sort $ do
 problem5 = foldl1 lcm [1 .. 20]
 
 
+problem6 = 0
+
+
 problem7 = primes !! 10000
 
 
@@ -107,11 +110,12 @@ solution  : #{solution}|]
 
 problems :: [Problem]
 problems =
-  [ makeSolved 1   233168    problem1
-  , makeSolved 2   4613732   problem2
-  , makeSolved 3   6857      problem3
-  , makeSolved 4   906609    problem4
-  , makeSolved 5   232792560 problem5
-  , makeSolved 7   104743    problem7
-  , makeSolved 104 329468    problem104
+  [ makeSolved 1 233168    problem1
+  , makeSolved 2 4613732   problem2
+  , makeSolved 3 6857      problem3
+  , makeSolved 4 906609    problem4
+  , makeSolved 5 232792560 problem5
+  , makeUnsolved 6 problem6
+  , makeSolved 7   104743 problem7
+  , makeSolved 104 329468 problem104
   ]

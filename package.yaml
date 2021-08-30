@@ -37,6 +37,9 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - euler
+    - brick
+    - vector
+    - vty
 
 tests:
   euler-test:
