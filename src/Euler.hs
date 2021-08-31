@@ -72,12 +72,13 @@ problem8string =
 
 problem8digits = map digitToInt problem8string
 
-problem8 = loop problem8digits 0
+problem8 = loop problem8digits (length problem8digits) 0
  where
-  loop digits@(a : b : c : d : e : f : g : h : i : j : k : l : m : rest) biggest
-    = loop (tail digits)
-           (max biggest $ a * b * c * d * e * f * g * h * i * j * k * l * m)
-  loop (b : c : d : e : f : g : h : i : j : k : l : m : []) biggest = biggest
+  loop digits size biggest
+    | size >= 13 = loop (tail digits)
+                        (size - 1)
+                        (max biggest $ product $ take 13 digits)
+    | otherwise = biggest
 
 
 pandigital digits = sort digits == "123456789"
